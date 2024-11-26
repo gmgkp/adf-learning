@@ -1,0 +1,118 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_Customer",
+						"type": "DatasetReference"
+					},
+					"name": "DFCustomer"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_Purchase",
+						"type": "DatasetReference"
+					},
+					"name": "DFPurchase"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_dataflowSink",
+						"type": "DatasetReference"
+					},
+					"name": "FileStore"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "QualityCheck"
+				},
+				{
+					"name": "Merge"
+				},
+				{
+					"name": "Summary"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerCode as string,",
+				"          { CustomerName} as string,",
+				"          { Address} as string,",
+				"          { PhoneNumber} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> DFCustomer",
+				"source(output(",
+				"          PurchaseOrderID as string,",
+				"          { CustomerCode} as string,",
+				"          ProductCode as string,",
+				"          EmployeeCode as string,",
+				"          { PuchaseOrderDate} as string,",
+				"          { Quantity} as integer,",
+				"          { UnitPrice} as float",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> DFPurchase",
+				"DFCustomer select(mapColumn(",
+				"          CustomerCode,",
+				"          { CustomerName}",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"DFPurchase select(mapColumn(",
+				"          { CustomerCode},",
+				"          { Quantity},",
+				"          { UnitPrice}",
+				"     ),",
+				"     partitionBy('hash', 1),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 filter(greater({ Quantity}, 0)) ~> QualityCheck",
+				"QualityCheck, select1 join({ CustomerCode} == CustomerCode,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> Merge",
+				"Merge aggregate(groupBy({ CustomerCode},",
+				"          { CustomerName}),",
+				"     { Quantity} = sum({ Quantity}),",
+				"          { UnitPrice} = sum({ UnitPrice})) ~> Summary",
+				"Summary sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          {MSISDN } as string,",
+				"          {CALL_START_DATE } as string,",
+				"          {CALL_START_TIME } as string,",
+				"          {CALL_END_TIME } as string,",
+				"          CALL_DURATION as string,",
+				"          CHARGED_AMOUNT as string,",
+				"          CALLING_PARTY as string,",
+				"          CALLED_PARTY as string,",
+				"          IMEI as string,",
+				"          IMSI as string,",
+				"          LAC_ID as string,",
+				"          CELL_ID as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> FileStore"
+			]
+		}
+	}
+}

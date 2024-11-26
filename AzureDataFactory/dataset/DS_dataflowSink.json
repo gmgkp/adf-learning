@@ -1,0 +1,73 @@
+{
+	"name": "DS_dataflowSink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_DataFlow_Customer_Merge",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "source/output",
+				"fileSystem": "dataeng"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "MSISDN ",
+				"type": "String"
+			},
+			{
+				"name": "CALL_START_DATE ",
+				"type": "String"
+			},
+			{
+				"name": "CALL_START_TIME ",
+				"type": "String"
+			},
+			{
+				"name": "CALL_END_TIME ",
+				"type": "String"
+			},
+			{
+				"name": "CALL_DURATION",
+				"type": "String"
+			},
+			{
+				"name": "CHARGED_AMOUNT",
+				"type": "String"
+			},
+			{
+				"name": "CALLING_PARTY",
+				"type": "String"
+			},
+			{
+				"name": "CALLED_PARTY",
+				"type": "String"
+			},
+			{
+				"name": "IMEI",
+				"type": "String"
+			},
+			{
+				"name": "IMSI",
+				"type": "String"
+			},
+			{
+				"name": "LAC_ID",
+				"type": "String"
+			},
+			{
+				"name": "CELL_ID",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
